@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASYLUM — India Refugee Aid Network</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#0a0f1e',
+            'navy-light': '#111827',
+            electric: '#3b82f6',
+            humanitarian: '#f97316',
+            'humanitarian-dark': '#ea580c',
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          animation: {
+            'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in': 'fadeIn 0.4s ease-out',
+          },
+          keyframes: {
+            fadeIn: { '0%': { opacity: '0', transform: 'translateY(8px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.2); }
+    .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(59, 130, 246, 0.15); }
+    .btn-transition { transition: all 0.2s ease; }
+    #panel { min-height: 60vh; }
+    .mono { font-family: 'Courier New', 'IBM Plex Mono', monospace; }
+    .control-bar { background: rgba(255, 255, 255, 0.8); border-bottom: 2px solid #3b82f6; backdrop-filter: blur(10px); }
+    .port-tab { cursor: pointer; padding: 0.5rem 1rem; border: 1px solid rgba(59, 130, 246, 0.3); margin: 0.25rem; border-radius: 0.375rem; transition: all 0.2s; color: #1e293b; }
+    .port-tab.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+    .port-item { padding: 0.75rem; margin: 0.25rem 0; border-left: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.08); cursor: pointer; border-radius: 0.25rem; transition: all 0.2s; color: #1e293b; }
+    .port-item:hover { background: rgba(59, 130, 246, 0.15); }
+    .case-table { width: 100%; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 0.5rem; overflow: hidden; }
+    .case-row { border-bottom: 1px solid rgba(59, 130, 246, 0.15); padding: 0.75rem; display: grid; grid-template-columns: 1fr 1.2fr 1fr 1.2fr 1fr 0.8fr; gap: 0.75rem; align-items: center; font-size: 0.875rem; color: #1e293b; }
+    .case-row:hover { background: rgba(59, 130, 246, 0.1); }
+    .stat-box { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 0.5rem; padding: 1rem; text-align: center; }
+    .alert-item { border-left: 3px solid #ef4444; padding: 0.75rem; margin: 0.5rem 0; background: rgba(239, 68, 68, 0.08); border-radius: 0.25rem; font-size: 0.875rem; color: #7f1d1d; }
+  </style>
+</head>
+<body class="bg-white text-slate-900 font-sans antialiased min-h-screen">
+  <!-- Live ticker -->
+  <div id="ticker" class="sticky top-0 z-50 glass border-b border-slate-200 py-3 px-4 text-xs text-slate-700 flex items-center justify-between overflow-hidden">
+    <span class="flex items-center gap-2 shrink-0">
+      <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+      <span class="font-bold text-slate-900">🟢 ASYLUM HELP SYSTEM ONLINE</span>
+    </span>
+    <span id="tickerText" class="flex items-center gap-2 text-slate-600 text-xs flex-1 justify-center">Loading…</span>
+    <span id="officerInfo" class="shrink-0 text-slate-600 text-xs mono">System Time: 10:49 IST</span>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sticky top-[62px] z-40 glass border-b border-slate-200">
+    <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14">
+        <a href="#" data-page="home" class="text-lg font-bold text-electric tracking-tight mono">ASYLUM HUB</a>
+        <button type="button" id="navToggle" class="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100" aria-label="Menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div id="navMenu" class="hidden md:flex items-center gap-1">
+          <a href="#" data-page="home" class="nav-link px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 btn-transition text-sm font-medium">Dashboard</a>
+          <a href="#" data-page="submit" class="nav-link px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 btn-transition text-sm font-medium">Request Help</a>
+          <a href="#" data-page="ngos" class="nav-link px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 btn-transition text-sm font-medium">Find Support</a>
+          <a href="#" data-page="requests" class="nav-link px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 btn-transition text-sm font-medium">Active Cases</a>
+        </div>
+        <a href="#" data-page="register-ngo" class="text-sm font-medium text-humanitarian hover:text-orange-600 btn-transition hidden md:inline">Register Organization</a>
+      </div>
+      <div id="navMobile" class="md:hidden hidden pb-3 space-y-1 border-t border-slate-200 pt-2">
+        <a href="#" data-page="home" class="nav-link block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">Dashboard</a>
+        <a href="#" data-page="submit" class="nav-link block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">Request Help</a>
+        <a href="#" data-page="requests" class="nav-link block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">Active Cases</a>
+        <a href="#" data-page="ngos" class="nav-link block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">Find Support</a>
+        <a href="#" data-page="register-ngo" class="nav-link block px-3 py-2 rounded-lg text-humanitarian hover:bg-slate-100">Register Organization</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="panel" class="max-w-full w-full px-4 sm:px-6 lg:px-8 py-6 transition-all duration-300" style="min-height: 100vh;">
+    <p class="text-slate-500">Loading…</p>
+  </main>
+
+  <script>
+    const API = '';
+    function api(path, opts = {}) {
+      return fetch(API + path, { ...opts, headers: { 'Content-Type': 'application/json', ...opts.headers } });
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    const statusStyles = {
+      URGENT: 'bg-red-500/20 text-red-400 border-red-500/40',
+      NEW: 'bg-blue-500/20 text-blue-400 border-blue-500/40',
+      PROCESSING: 'bg-amber-500/20 text-amber-400 border-amber-500/40',
+      MATCHED: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
+      RESOLVED: 'bg-slate-500/20 text-slate-400 border-slate-500/40',
+    };
+    function statusBadge(item) {
+      const created = item.created_at ? new Date(item.created_at) : new Date();
+      const mins = (Date.now() - created) / 60000;
+      let status = 'PROCESSING';
+      if (mins < 60) status = 'NEW';
+      if ((item.description || '').toLowerCase().includes('urgent')) status = 'URGENT';
+      const cls = statusStyles[status] || statusStyles.PROCESSING;
+      return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${cls}">${status}</span>`;
+    }
+
+    function animateValue(el, end, duration = 1500) {
+      if (!el) return;
+      const start = 0;
+      const startTime = performance.now();
+      function step(now) {
+        const t = Math.min((now - startTime) / duration, 1);
+        const v = Math.floor(start + (end - start) * t);
+        el.textContent = v;
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function updateTicker(stats, lastMatchMins) {
+      const el = document.getElementById('tickerText');
+      if (!el) return;
+      el.innerHTML = `<span class="flex items-center gap-3 text-xs"><span class="mono">●</span> <strong>${stats?.help_requests ?? 0}</strong> people need help | <strong>${stats?.ngos ?? 0}</strong> organizations ready | Last match 4 mins ago</span>`;
+    }
+
+    function setNavActive(page) {
+      document.querySelectorAll('.nav-link').forEach(a => {
+        a.classList.toggle('text-electric', a.dataset.page === page);
+        a.classList.toggle('bg-white/5', a.dataset.page === page);
+      });
+    }
+
+    function show(html) {
+      const panel = document.getElementById('panel');
+      panel.innerHTML = html;
+      panel.classList.add('animate-fade-in');
+      document.querySelectorAll('[data-page]').forEach(el => {
+        el.addEventListener('click', e => {
+          if (el.dataset.page) { e.preventDefault(); go(el.dataset.page); }
+        });
+      });
+      setNavActive(window._page);
+    }
+
+    function go(page) {
+      window._page = page;
+      if (page === 'home') loadDashboard();
+      else if (page === 'submit') loadSubmit();
+      else if (page === 'requests') loadRequests();
+      else if (page === 'ngos') loadNgos();
+      else if (page === 'livefeed') loadLiveFeed();
+      else if (page === 'register-ngo') loadRegisterNgo();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      go('home');
+    });
+
+    async function loadDashboard() {
+      let stats = { help_requests: 0, ngos: 0 };
+      try {
+        const r = await api('/stats');
+        stats = await r.json();
+        updateTicker(stats, 4);
+      } catch (_) {}
+      const s = stats;
+      show(`
+        <div class="space-y-8">
+          <section class="text-center py-12 md:py-16">
+            <p class="text-humanitarian font-semibold text-sm uppercase tracking-wider mb-4">🟢 Asylum Support System Active</p>
+            <h1 class="text-4xl md:text-6xl font-bold text-slate-900 tracking-tight max-w-4xl mx-auto leading-tight">Every refugee deserves safe support</h1>
+            <p class="text-slate-600 mt-6 text-lg max-w-2xl mx-auto">Connect with NGOs and support services. Find housing, legal help, medical care, and essential resources. You are not alone.</p>
+            <div class="mt-10 flex flex-wrap justify-center gap-4">
+              <a href="#" data-page="submit" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold bg-humanitarian hover:bg-humanitarian-dark text-white btn-transition">Get Help Now</a>
+              <a href="#" data-page="ngos" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold glass-card text-electric border-electric/30 hover:border-electric/50 btn-transition">Find Organizations</a>
+              <a href="#" data-page="requests" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold glass-card text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 btn-transition">View Requests</a>
+            </div>
+          </section>
+
+          <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-card rounded-xl p-6 border border-slate-200">
+              <p class="text-slate-600 text-sm font-medium">🆘 People seeking help</p>
+              <p id="stat-requests" class="text-3xl font-bold text-humanitarian mt-1">0</p>
+            </div>
+            <div class="glass-card rounded-xl p-6 border border-slate-200">
+              <p class="text-slate-600 text-sm font-medium">🏢 Support organizations</p>
+              <p id="stat-ngos" class="text-3xl font-bold text-electric mt-1">0</p>
+            </div>
+            <div class="glass-card rounded-xl p-6 border border-slate-200">
+              <p class="text-slate-600 text-sm font-medium">✅ Successfully matched</p>
+              <p class="text-3xl font-bold text-green-600 mt-1">142</p>
+            </div>
+            <div class="glass-card rounded-xl p-6 border border-slate-200">
+              <p class="text-slate-600 text-sm font-medium">💚 Lives supported</p>
+              <p class="text-3xl font-bold text-emerald-600 mt-1">847</p>
+            </div>
+          </section>
+
+          <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass-card rounded-xl p-6 border border-slate-200">
+              <h2 class="text-lg font-semibold text-slate-900 mb-4">📍 Support Centers Active</h2>
+              <div class="aspect-[4/3] rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center relative overflow-hidden">
+                <svg viewBox="0 0 400 500" class="w-full h-full text-slate-500" aria-label="India map">
+                  <defs>
+                    <linearGradient id="mapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.1" />
+                      <stop offset="100%" style="stop-color:#f97316;stop-opacity:0.1" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M100 80 L180 70 L220 120 L260 100 L280 160 L260 200 L240 180 L200 190 L160 210 L140 250 L120 220 L100 180 Z" fill="url(#mapGrad)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                  <circle cx="150" cy="140" r="8" class="fill-electric animate-pulse" opacity="0.8"/><text x="150" y="160" text-anchor="middle" class="fill-slate-400 text-xs">Delhi</text>
+                  <circle cx="210" cy="170" r="8" class="fill-humanitarian animate-pulse" opacity="0.8"/><text x="210" y="190" text-anchor="middle" class="fill-slate-400 text-xs">Kolkata</text>
+                  <circle cx="240" cy="210" r="8" class="fill-emerald-400 animate-pulse" opacity="0.8"/><text x="240" y="230" text-anchor="middle" class="fill-slate-400 text-xs">Mumbai</text>
+                  <circle cx="180" cy="240" r="8" class="fill-blue-400 animate-pulse" opacity="0.8"/><text x="180" y="260" text-anchor="middle" class="fill-slate-400 text-xs">Bangalore</text>
+                  <circle cx="140" cy="200" r="8" class="fill-purple-400 animate-pulse" opacity="0.8"/><text x="140" y="220" text-anchor="middle" class="fill-slate-400 text-xs">Hyderabad</text>
+                  <text x="200" y="380" text-anchor="middle" class="fill-slate-500 text-sm font-medium">7 support centers across India</text>
+                  <text x="200" y="400" text-anchor="middle" class="fill-slate-600 text-xs">Helping refugees find safe housing and services</text>
+                </svg>
+              </div>
+            </div>
+            <div class="glass-card rounded-xl p-6 border border-slate-200">
+              <h2 class="text-lg font-semibold text-slate-900 mb-4">📋 Recent Help Requests</h2>
+              <div id="activityFeed" class="space-y-3 max-h-64 overflow-y-auto">Loading…</div>
+            </div>
+          </section>
+
+          <div class="glass-card rounded-xl p-6 border border-slate-200 text-center">
+            <p class="text-slate-600 text-sm mb-2">First time here? Load sample data to see how the system works</p>
+            <button type="button" id="seedBtn" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 btn-transition font-medium">Load Demo Data</button>
+            <p id="seedMsg" class="text-emerald-700 text-sm mt-2"></p>
+          </div>
+        </div>
+      `);
+      animateValue(document.getElementById('stat-requests'), s.help_requests);
+      animateValue(document.getElementById('stat-ngos'), s.ngos);
+      loadActivityFeed();
+      document.getElementById('seedBtn')?.addEventListener('click', async () => {
+        const btn = document.getElementById('seedBtn');
+        const msg = document.getElementById('seedMsg');
+        btn.disabled = true;
+        try {
+          const r = await api('/seed', { method: 'POST' });
+          const d = await r.json();
+          msg.textContent = d.message === 'Already seeded' ? 'Demo data already loaded.' : `Loaded ${d.help_requests} requests and ${d.ngos} NGOs.`;
+          setTimeout(() => go('home'), 500);
+        } catch (e) {
+          msg.textContent = 'Failed to load demo data.';
+        }
+        btn.disabled = false;
+      });
+    }
+
+    async function loadActivityFeed() {
+      const el = document.getElementById('activityFeed');
+      if (!el) return;
+      try {
+        const r = await api('/help-requests');
+        const d = await r.json();
+        const items = (d.items || []).slice(0, 5);
+        if (items.length === 0) { el.innerHTML = '<p class="text-slate-500 text-sm">No recent requests.</p>'; return; }
+        el.innerHTML = items.map(x => {
+          const created = x.created_at ? new Date(x.created_at) : new Date();
+          const mins = Math.floor((Date.now() - created) / 60000);
+          const timeStr = mins < 60 ? `${mins}m ago` : `${Math.floor(mins/60)}h ago`;
+          return `
+          <div class="pb-3 border-b border-white/5 last:border-0">
+            <div class="flex items-start justify-between gap-2 mb-1">
+              <div class="flex items-center gap-2">
+                ${statusBadge(x)}
+                <span class="text-xs text-slate-500">${timeStr}</span>
+              </div>
+            </div>
+            <p class="text-white font-medium text-sm">${escapeHtml(x.name)}</p>
+            <p class="text-slate-500 text-xs">📍 ${escapeHtml(x.location)} • ${escapeHtml(x.help_type)}</p>
+            <p class="text-slate-400 text-xs mt-1">${escapeHtml((x.description || '').slice(0, 50))}…</p>
+          </div>
+        `;
+        }).join('');
+      } catch (_) {
+        el.innerHTML = '<p class="text-slate-500 text-sm">Could not load activity.</p>';
+      }
+    }
+
+    function loadSubmit() {
+      show(`
+        <div class="max-w-xl mx-auto">
+          <h1 class="text-2xl font-bold text-white mb-2">Request assistance</h1>
+          <p class="text-slate-400 mb-6">Tell us what help you need. Our network of NGOs will respond quickly.</p>
+          <form id="submitForm" class="glass-card rounded-xl p-6 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">Your name</label>
+              <input name="name" required class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white placeholder-slate-500 focus:border-electric focus:ring-1 focus:ring-electric outline-none btn-transition" placeholder="Full name" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">City / Location</label>
+              <input name="location" required class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white placeholder-slate-500 focus:border-electric focus:ring-1 focus:ring-electric outline-none btn-transition" placeholder="e.g. Delhi, Mumbai, Bangalore" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">Type of help needed</label>
+              <select name="help_type" required class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white focus:border-electric focus:ring-1 focus:ring-electric outline-none btn-transition">
+                <option value="">Select a category...</option>
+                <option value="housing">🏠 Housing / Shelter</option>
+                <option value="legal">⚖️ Legal assistance</option>
+                <option value="medical">⚕️ Medical care</option>
+                <option value="food">🍲 Food / Nutrition</option>
+                <option value="documentation">📄 Documentation</option>
+                <option value="employment">💼 Employment</option>
+                <option value="education">📚 Education / Skills</option>
+                <option value="other">❓ Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">Details</label>
+              <textarea name="description" required rows="3" class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white placeholder-slate-500 focus:border-electric focus:ring-1 focus:ring-electric outline-none btn-transition resize-none" placeholder="Describe your situation and what you need"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">Language</label>
+              <select name="language" class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white focus:border-electric outline-none btn-transition">
+                <option value="Hindi">हिंदी - Hindi</option>
+                <option value="English">English</option>
+                <option value="Bengali">বাংলা - Bengali</option>
+                <option value="Tamil">தமிழ் - Tamil</option>
+                <option value="Gujarati">ગુજરાતી - Gujarati</option>
+                <option value="Marathi">मराठी - Marathi</option>
+                <option value="Punjabi">ਪੰਜਾਬੀ - Punjabi</option>
+                <option value="Telugu">తెలుగు - Telugu</option>
+                <option value="Urdu">اردو - Urdu</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">Contact (optional)</label>
+              <input name="contact_info" class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white placeholder-slate-500 focus:border-electric outline-none btn-transition" placeholder="Phone or email (we keep it private)" />
+            </div>
+            <p id="err" class="text-red-400 text-sm"></p>
+            <button type="submit" class="w-full py-3 rounded-lg font-semibold bg-humanitarian hover:bg-humanitarian-dark text-white btn-transition">Submit request</button>
+            <p class="text-slate-500 text-xs text-center">Your request will be reviewed and matched with relevant NGOs</p>
+          </form>
+        </div>
+      `);
+      document.getElementById('submitForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const f = e.target;
+        const err = document.getElementById('err');
+        err.textContent = '';
+        try {
+          await api('/help-request', { method: 'POST', body: JSON.stringify({
+            name: f.name.value,
+            location: f.location.value,
+            help_type: f.help_type.value,
+            description: f.description.value,
+            language: f.language.value,
+            contact_info: f.contact_info.value || undefined
+          }) });
+          show('<div class="text-center py-12"><div class="glass-card rounded-xl p-8 inline-block border border-emerald-500/40"><p class="text-emerald-400 font-semibold text-lg">✓ Request submitted successfully!</p><p class="text-slate-400 text-sm mt-3">NGOs in your area will review your request</p><a href="#" data-page="home" class="inline-block mt-6 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 btn-transition">Back to dashboard</a></div></div>');
+        } catch (x) {
+          err.textContent = x.message || 'Failed to submit. Please try again.';
+        }
+      });
+    }
+
+    async function loadRequests() {
+      let list = '<p class="text-slate-500">Loading…</p>';
+      try {
+        const r = await api('/help-requests');
+        const d = await r.json();
+        const items = d.items || [];
+        if (items.length === 0) list = '<div class="text-center py-8"><p class="text-slate-500">No requests yet.</p><a href="#" data-page="submit" class="inline-block mt-4 text-electric hover:underline">Submit help request</a></div>';
+        else list = items.map(x => {
+          const created = x.created_at ? new Date(x.created_at) : new Date();
+          const mins = Math.floor((Date.now() - created) / 60000);
+          const timeStr = mins < 60 ? `${mins} mins ago` : `${Math.floor(mins/60)}h ago`;
+          return `
+          <div class="glass-card rounded-xl p-4 mb-4 border border-white/5 hover:border-electric/30 btn-transition">
+            <div class="flex flex-wrap items-center gap-2 mb-2">${statusBadge(x)}<span class="text-slate-500 text-xs">${timeStr}</span></div>
+            <div class="flex justify-between items-start gap-2 mb-2">
+              <div>
+                <p class="font-semibold text-white">${escapeHtml(x.name)}</p>
+                <p class="text-slate-400 text-sm">📍 ${escapeHtml(x.location)}</p>
+              </div>
+              <span class="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-300">${escapeHtml(x.help_type)}</span>
+            </div>
+            <p class="text-slate-400 text-sm mb-2">${escapeHtml(x.description.slice(0, 120))}${x.description.length > 120 ? '…' : ''}</p>
+            ${x.contact_info ? `<p class="text-slate-500 text-xs">📞 Contact: ${escapeHtml(x.contact_info)}</p>` : ''}
+          </div>
+        `;
+        }).join('');
+      } catch (_) {
+        list = '<p class="text-red-400">Could not load requests.</p>';
+      }
+      show(`<h1 class="text-2xl font-bold text-white mb-2">Requests for help</h1><p class="text-slate-400 mb-6">Browse active help requests from people in your community.</p>${list}`);
+    }
+
+    async function loadLiveFeed() {
+      let html = '<p class="text-slate-500">Loading…</p>';
+      try {
+        const r = await api('/help-requests');
+        const d = await r.json();
+        const items = d.items || [];
+        if (items.length === 0) html = '<p class="text-slate-500">No activity yet. Check back soon.</p>';
+        else html = items.map(x => {
+          const created = x.created_at ? new Date(x.created_at) : new Date();
+          const mins = Math.floor((Date.now() - created) / 60000);
+          const timeStr = mins < 60 ? `${mins}m ago` : `${Math.floor(mins/60)}h ago`;
+          return `
+          <div class="glass-card rounded-xl p-4 mb-4 border border-white/5 hover:border-electric/20 btn-transition">
+            <div class="flex justify-between items-start gap-3 mb-2">
+              <div>
+                ${statusBadge(x)}
+              </div>
+              <span class="text-xs text-slate-500">${timeStr}</span>
+            </div>
+            <div class="mb-3">
+              <p class="font-semibold text-white">${escapeHtml(x.name)}</p>
+              <p class="text-slate-400 text-sm">📍 ${escapeHtml(x.location)} • ${escapeHtml(x.help_type)}</p>
+              <p class="text-slate-500 text-xs mt-1">Language: ${escapeHtml(x.language)}</p>
+            </div>
+            <p class="text-slate-400 text-sm border-l-2 border-electric/40 pl-3">"${escapeHtml(x.description.slice(0, 100))}${x.description.length > 100 ? '...' : ''}"</p>
+            ${x.contact_info ? `<p class="text-slate-500 text-xs mt-2">📞 ${escapeHtml(x.contact_info)}</p>` : ''}
+          </div>
+        `;
+        }).join('');
+      } catch (_) {
+        html = '<p class="text-red-400">Could not load activity feed.</p>';
+      }
+      show(`<h1 class="text-2xl font-bold text-white mb-2">Live activity</h1><p class="text-slate-400 mb-6">Real-time updates of help requests across India.</p>${html}`);
+    }
+
+    async function loadNgos() {
+      show(`
+        <div>
+          <h1 class="text-2xl font-bold text-white mb-2">Find NGOs</h1>
+          <p class="text-slate-400 mb-6">Search for organizations offering support in your city.</p>
+          <div class="flex flex-wrap gap-3 mb-6">
+            <input id="ngoLocation" placeholder="e.g. Mumbai, Delhi, Bangalore" class="px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white placeholder-slate-500 focus:border-electric outline-none btn-transition flex-1 max-w-xs" />
+            <button type="button" id="ngoSearch" class="px-6 py-2.5 rounded-lg bg-electric hover:bg-blue-600 text-white font-medium btn-transition">Search</button>
+          </div>
+          <div id="ngoList" class="space-y-4"><p class="text-slate-500">Enter a city name to find NGOs in that area.</p></div>
+        </div>
+      `);
+      document.getElementById('ngoSearch').addEventListener('click', async () => {
+        const loc = document.getElementById('ngoLocation').value.trim();
+        const div = document.getElementById('ngoList');
+        if (!loc) { div.innerHTML = '<p class="text-red-400">Please enter a city name.</p>'; return; }
+        div.innerHTML = '<p class="text-slate-500">Searching for NGOs...</p>';
+        try {
+          const r = await api('/ngos/nearby?location=' + encodeURIComponent(loc));
+          const d = await r.json();
+          const items = d.items || [];
+          if (items.length === 0) div.innerHTML = `<p class="text-slate-500">No NGOs found in <strong>${escapeHtml(loc)}</strong> yet. <a href="#" data-page="register-ngo" class="text-electric hover:underline">Register your organization?</a></p>`;
+          else div.innerHTML = items.map(x => `
+            <div class="glass-card rounded-xl p-4 border border-white/5 hover:border-electric/20 btn-transition">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <p class="font-semibold text-white">${escapeHtml(x.name)}</p>
+                  <p class="text-slate-400 text-sm">📍 ${escapeHtml(x.location)}</p>
+                </div>
+              </div>
+              <p class="text-slate-400 text-sm mb-2">Services:</p>
+              <div class="flex flex-wrap gap-1 mb-3">
+                ${x.services.split(',').map(s => `<span class="text-xs px-2 py-1 rounded bg-electric/20 text-blue-300">${escapeHtml(s.trim())}</span>`).join('')}
+              </div>
+              <p class="text-slate-500 text-sm">📞 ${escapeHtml(x.contact_info)}</p>
+            </div>
+          `).join('');
+        } catch (_) {
+          div.innerHTML = '<p class="text-red-400">Could not load NGOs. Please try again.</p>';
+        }
+      });
+    }
+
+    function loadRegisterNgo() {
+      show(`
+        <div class="max-w-xl mx-auto">
+          <h1 class="text-2xl font-bold text-white mb-2">Register your organization</h1>
+          <p class="text-slate-400 mb-6">Join our network of NGOs helping refugees across India.</p>
+          <form id="ngoForm" class="glass-card rounded-xl p-6 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">Organization name</label>
+              <input name="name" required class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white focus:border-electric outline-none btn-transition" placeholder="Your NGO name" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">Services you provide (comma-separated)</label>
+              <input name="services" value="Housing, Legal, Medical, Food" class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white focus:border-electric outline-none btn-transition" placeholder="e.g. Housing, Medical, Legal" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">City / Primary location</label>
+              <input name="location" required class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white focus:border-electric outline-none btn-transition" placeholder="e.g. Mumbai, Delhi, Bangalore" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-400 mb-1">Contact (email or phone)</label>
+              <input name="contact_info" required class="w-full px-4 py-2.5 rounded-lg bg-navy-light border border-white/10 text-white focus:border-electric outline-none btn-transition" placeholder="official@ngo.org or +91-XXXXX-XXXXX" />
+            </div>
+            <p id="ngoErr" class="text-red-400 text-sm"></p>
+            <button type="submit" class="w-full py-3 rounded-lg font-semibold bg-humanitarian hover:bg-humanitarian-dark text-white btn-transition">Register organization</button>
+            <p class="text-slate-500 text-xs text-center">We will verify your organization before listing</p>
+          </form>
+        </div>
+      `);
+      document.getElementById('ngoForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const f = e.target;
+        const err = document.getElementById('ngoErr');
+        err.textContent = '';
+        try {
+          await api('/ngo', { method: 'POST', body: JSON.stringify({
+            name: f.name.value,
+            services: f.services.value,
+            location: f.location.value,
+            contact_info: f.contact_info.value
+          }) });
+          show('<div class="text-center py-12"><div class="glass-card rounded-xl p-8 inline-block border border-emerald-500/40"><p class="text-emerald-400 font-semibold text-lg">✓ Registration received!</p><p class="text-slate-400 text-sm mt-3">We\'ll verify your organization soon</p><a href="#" data-page="ngos" class="inline-block mt-6 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 btn-transition">View NGO directory</a></div></div>');
+        } catch (x) {
+          err.textContent = x.message || 'Failed to register. Please try again.';
+        }
+      });
+    }
+
+    document.getElementById('navToggle')?.addEventListener('click', () => {
+      const m = document.getElementById('navMobile');
+      m?.classList.toggle('hidden');
+    });
+    document.querySelectorAll('nav [data-page]').forEach(el => {
+      el.addEventListener('click', e => { e.preventDefault(); go(el.dataset.page); document.getElementById('navMobile')?.classList.add('hidden'); });
+    });
+    go('home');
+  </script>
+</body>
+</html>
